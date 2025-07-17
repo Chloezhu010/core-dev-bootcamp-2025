@@ -7,26 +7,50 @@
 **Multiple Choice:** Which cryptographic algorithms does XRPL support for key generation and signing?
 
 a) RSA and DSA only  
-b) secp256k1 and ed25519  
+b) secp256k1 and ed25519  ✅
 c) secp256r1 and RSA  
 d) ed25519 and RSA
 
 ### Question 2 (5 points)
 **Short Answer:** What security measure does the `SecretKey` class destructor implement, and why is this important?
+- Secure erasure of internal buffer on destruction
+- Without secure erasure, the secret key data could remain in memory even after the SecretKey object is destroyed. This sensitive data could potentially be recovered.
+```cpp
+// SecretKey.cpp
+SecretKey::~SecretKey()
+{
+    secure_erase(buf_, sizeof(buf_));
+}
+```
 
 ### Question 3 (5 points)
 **Multiple Choice:** How many bytes does a compressed secp256k1 public key contain in XRPL?
 
 a) 32 bytes  
-b) 33 bytes  
+b) 33 bytes  ✅
 c) 64 bytes  
 d) 65 bytes
 
 ### Question 4 (5 points)
-**True/False:** The `randomSecretKey()` function uses `beast::rngfill` with `crypto_prng()` and performs secure erasure of temporary buffers.
+**True/False:** The `randomSecretKey()` function uses `beast::rngfill` with `crypto_prng()` and performs secure erasure of temporary buffers. ✅
+
+```cpp
+// SecretKey.cpp
+SecretKey
+randomSecretKey()
+{
+    std::uint8_t buf[32];
+    beast::rngfill(buf, sizeof(buf), crypto_prng());
+    SecretKey sk(Slice{buf, sizeof(buf)});
+    secure_erase(buf, sizeof(buf));
+    return sk;
+}
+```
 
 ### Question 5 (5 points)
 **Short Answer:** Explain the difference between `generateKeyPair()` and `randomKeyPair()` functions. When would you use each?
+- generateKeyPair: Generates a deterministic key pair (PublicKey, SecretKey) from a given KeyType and Seed.
+- randomKeyPair: Generates a random key pair (PublicKey, SecretKey) for a given KeyType.
 
 ---
 
@@ -36,26 +60,29 @@ d) 65 bytes
 **Multiple Choice:** What does the `sha512Half()` function return?
 
 a) The first 64 bytes of a SHA-512 hash  
-b) The first 32 bytes of a SHA-512 hash  
+b) The first 32 bytes of a SHA-512 hash  ✅
 c) Half of the input data hashed with SHA-512  
 d) A 256-bit hash computed using SHA-256
 
 ### Question 7 (5 points)
 **Short Answer:** Describe what the `ripesha_hasher` computes and where this type of hash is typically used in blockchain systems.
+- Computes RIPEMD-160(SHA-256(x)), used for address and identifier generation
 
 ### Question 8 (5 points)
 **Multiple Choice:** Which OpenSSL-based hashers are available in XRPL?
 
 a) SHA-256, SHA-512, and MD5  
-b) SHA-256, SHA-512, and RIPEMD-160  
+b) SHA-256, SHA-512, and RIPEMD-160  ✅
 c) SHA-1, SHA-256, and SHA-512  
 d) SHA-256, RIPEMD-160, and Blake2b
 
 ### Question 9 (5 points)
-**True/False:** The `sha512Half_s` function variant uses secure erasure of internal state for additional security.
+**True/False:** The `sha512Half_s` function variant uses secure erasure of internal state for additional security.✅
 
 ### Question 10 (5 points)
 **Short Answer:** Why might XRPL use RIPEMD-160(SHA-256(x)) for address generation instead of just SHA-256?
+- Shorter addresses more user-friendly? Storage efficiency? RIPEMD-160(SHA-256(x)) produces 20-byte addresses vs SHA-256's 32-byte
+- Collision resistance? Harder for an attacker to find collisions
 
 ---
 
@@ -66,25 +93,29 @@ d) SHA-256, RIPEMD-160, and Blake2b
 
 a) The message is signed directly  
 b) The message is hashed with SHA-256  
-c) The message is hashed with SHA-512 and the first 256 bits are used  
+c) The message is hashed with SHA-512 and the first 256 bits are used  ✅
 d) The message is encoded with Base58 first
 
 ### Question 12 (5 points)
 **Short Answer:** Explain the difference between the `sign()` and `signDigest()` functions. What are the security implications of each?
+- sign: Signs a message with a secret key, supporting both secp256k1 and ed25519.
+- signDigest: Signs a 256-bit digest using a secp256k1 secret key.
 
 ### Question 13 (5 points)
 **Multiple Choice:** For ed25519 signatures, how many bytes does the signature contain?
 
-a) 32 bytes  
+a) 32 bytes  ✅
 b) 64 bytes  
 c) Variable length (DER encoded)  
 d) 72 bytes
 
 ### Question 14 (5 points)
-**True/False:** The `verify()` function can handle both secp256k1 and ed25519 signatures automatically by detecting the key type from the public key.
+**True/False:** The `verify()` function can handle both secp256k1 and ed25519 signatures automatically by detecting the key type from the public key. ✅
 
 ### Question 15 (5 points)
 **Short Answer:** Why does XRPL use DER encoding for secp256k1 signatures but not for ed25519 signatures?
+- secp256k1 ECDSA signature has variable length (1-33 bytes depending on the value)
+- DER encoding handles variable-length int and provides structure
 
 ---
 
@@ -94,7 +125,7 @@ d) 72 bytes
 **Multiple Choice:** What does the Base58 token encoding include for integrity verification?
 
 a) A version number only  
-b) A type byte and 4-byte checksum  
+b) A type byte and 4-byte checksum  ✅
 c) A timestamp and hash  
 d) A digital signature
 
@@ -106,7 +137,7 @@ d) A digital signature
 
 a) `memset()`  
 b) `bzero()`  
-c) `OPENSSL_cleanse()`  
+c) `OPENSSL_cleanse()`  ✅
 d) `SecureZeroMemory()`
 
 ### Question 19 (5 points)
